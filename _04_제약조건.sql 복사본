@@ -1,0 +1,295 @@
+/*
+
+제약조건(constraint)
+:Data Intergrity(데이터무결정)을 지키기 위한 수단
+	1. not null : null허용하지 않겠다(필수입력)	<=inline형식만 가능
+		null	: null허용(반드시 입력할 필요는 없다) <=생략하면 null
+	2.unique	: Domain(필드집합)내 유일한 값만 존재해야한다	
+	3.check		: 조건에 만족하는 값만 허용
+	4.default	: 기본값(입력하지 않으면 기본값)
+	5.primary key : 기본키(레코드를 대표하는 필드)
+	6.foreign key : 외래키(참조하는 값이 다른 테이블에서 참조)
+
+--ex1) not null : 필수입력
+create table tb1
+(
+	name varchar2(100) 	not null,		--제약조건 inline형식
+	addr varchar2(100)	null,
+	hobby varchar2(100)					--제약조건생략되면 null
+)	
+
+insert into tb1 values('일길동','서울시 관악구 신림동','낚시');
+insert into tb1(name) values('이길동');
+insert into tb1(addr) values('서울시 구로구'); --(x)
+
+insert into tb1 values('삼길동',null,null);
+insert into tb1(name) values(null);
+
+
+select * from tb1
+
+--ex2) unique : 도메인내에 중복불가
+	
+	--형식1)
+	create table tb2
+	(
+		name varchar2(100) not null ,--필수입력
+		id	 varchar2(100) not null unique	,--필수입력 + 중복불가
+		pwd	 varchar2(100) not null  --필수입력
+	
+	)
+	insert into tb2 values('일길동' , 'one' , '1234');
+	insert into tb2 values('이길동' , 'one' , 'password'); --unique제약 위배
+	
+	--형식2) 제약조건 분리
+	create table tb22
+	(
+		name varchar2(100) not null ,--필수입력
+		id	 varchar2(100) not null	,--필수입력
+		pwd	 varchar2(100) not null  --필수입력
+	)
+	--제약조건추가(내부적인 수정 == 추가)
+	alter table tb22
+		add constraint unique_tb22_id	unique(id) --위테이블에 있는 id항목을 유니크로 쓰겠다
+	
+	insert into tb22 values('일길동' , 'one' , '1234');
+	insert into tb22 values('이길동' , 'one' , 'password'); --unique제약 위배		
+	
+	--형식3) 제약조건 분리
+	create table tb222
+	(
+		name varchar2(100) not null ,--필수입력
+		id	 varchar2(100) not null	,--필수입력
+		pwd	 varchar2(100) not null  --필수입력
+		,
+		constraint unique_tb222_id unique(id)
+	)
+	
+	insert into tb222 values('일길동' , 'one' , '1234');
+	insert into tb222 values('이길동' , 'one' , 'password'); --unique제약 위배
+	
+	--제약조건 확인(Dictionary Table : user_contraints)
+	--				(Dictionary Table에 테이블명/필드명등은 대문자로 기록된다
+	--				검색시에는 반드시 대문자로 검색해야 된다
+	select
+		constraint_type,
+		constraint_name,
+		table_name
+	from user_constraints
+	where table_name='TB222'
+	
+--ex3) check제약: 조건에 만족하는 값만 허용
+	create table tb3
+	(
+		name varchar2(100) not null,
+		kor	number(3),
+		eng	int,
+		mat	int
+	)
+	insert into tb3 values('일길동', 99,88,77);
+	insert into tb3 values('이길동', 199,-88,77);
+	
+	select * from tb3
+	
+	--형식2: 제약조건 분리
+	create table tb33
+	(
+		name varchar2(100) not null,
+		kor	number(3),
+		eng	int,
+		mat	int
+	)
+	
+	관계연산자 :   >=	>	<=	<	=(같냐) != or <>(같지않냐)
+	논리연산자 :	and or not
+	
+	기타연산자 : 
+				 필드(변수) between A and B <= 필드의 범위가 A~B사이냐?
+				 필드 in (A,B,C,D)			<= ( 필드=A or 필드=B or 필드=C or 필드=D )
+	
+	--제약조건 추가
+	alter table tb33
+	add constraint ck_tb33_kor check( kor>=0 and kor<=100 );
+		
+	alter table tb33
+	add constraint ck_tb33_eng check( eng>=0 and eng<=100 );
+	
+	alter table tb33
+	add constraint ck_tb33_mat check( mat>=0 and mat<=100 );
+	또는
+	alter table tb33
+	add constraint ck_tb33_mat check( mat betwwn 0 and 100 );
+
+	--제약조건 제거
+	
+	alter table tb33 
+				drop eonstraint ck_tb33_kor;
+	
+	alter table tb33 
+				drop eonstraint ck_tb33_eng;
+	
+	alter table tb33 
+				drop eonstraint ck_tb33_mat;
+			
+	--Data삭제
+	delete from tb33
+	insert into tb33 values('일길동',99,77,88);
+	
+	--error 뜨는게 정상
+	insert into tb33 values('이길동',199,77,88); -- kor제약위배
+	insert into tb33 values('삼길동',99,-77,88); -- eng제약위배
+	insert into tb33 values('사길동',99,77,188); -- mat제약위배
+	
+	
+	--chek제약 예제2
+	create table tb4
+	(
+		name	varchar2(100) not null,
+		gender	varchar2(100)
+		
+	)
+	--성별 : '남자' '남' 'man' 'male' 'M' 무분별하게 입력하지 못하도록 설정
+			 '남자'	'여자'	외에 나머지는 허용안함
+			 
+	alter table	tb4
+		add constraint	ck_tb4_gender	check(	gender='남자' or gender='여자')
+	또는
+	alter table	tb4
+		add constraint	ck_tb4_gender	check(	gender in('남자', '여자') );	
+----위에 두개는 같은 의미
+	
+	--제약조건 해제(제거)
+	alter table tb4
+	 drop constraint	ck_tb4_gender
+	 			
+				
+						
+	insert into tb4 values('일길동' ,'남자');
+				 		 
+	--Error발생 
+	insert into tb4 values('이길동' ,'남자 ');
+	insert into tb4 values('삼길동' ,'male');
+	insert into tb4 values('홍길순' ,'female');
+	
+	--문제)
+	create table q1
+	(
+		name varchar2(100) not null,
+		job  varchar2(100)
+	)
+	
+	--job : '부장', '차장','과장', '대리', '주임', '사원'
+	--제시된 조건에 만족하는 제약조건을 생성해라...
+	 	
+	 
+	alter table	q1
+		add constraint	ck_q1_job	check(	job in('부장', '차장','과장','대리','주임','사원') );
+		 
+	insert into q1 values('장경령' ,'부장');
+	insert into q1 values('황창민' ,'대리');
+	insert into q1 values('정기덕' ,'차장');
+				 		 
+				 		 			 		 			 		 
+	--Error발생 
+	insert into q1 values('이길동' ,'부장 ');
+	insert into q1 values('삼길동' ,'차장님');
+	insert into q1 values('홍길순' ,'홍사원');
+	
+	--데이터 조회
+select * from q1
+
+ex4) default 제약 : 기본값
+	create table tb5
+	(
+	name varchar2(100)  	not null,
+	age int					default 1,
+	gender varchar2(100)	default '남자'
+	)
+
+	insert into tb5 values('일길동', 20,'남자');
+	insert into tb5 (name)values('일길동'); --< name만 입력 받기
+	
+	insert into tb5 values('이미지', default, '여자');
+	select * from tb5
+	
+	ex5) primary key (기본키)
+		1. record를 대표하는 컬럼(필드)
+		2.복합적인 제약조건 : not null + unique + index(검색 Tree)
+		
+	create table tb6
+	(
+		idx	int,
+		name varchar2(100) not null,
+		age int default 1
+	)
+	
+	--제약조건(primary)
+	alter table tb6
+		add constraint pk_tb6_idx	primary key(idx)
+	
+	--제약조건 확인
+	select
+		constraint_type,
+		constraint_name,
+		table_name
+	from user_constraints
+	where table_name='TB6'
+	
+	insert into tb6 values(1,'일길동',20);
+		
+	insert into tb6 values(1,'이길동',25); 		--primary key 중 unique위배
+	
+	insert into tb6 values(null,'삼길동',30); 	--primary key 중 not null위배		
+				
+--ex6) foreign key(외래키)
+
+		create table 학생
+		(
+			학번 int,
+			이름 varchar2(100) not null,
+			전화 	   varchar2(100),
+			보호자명   varchar2(100),
+			보호자직업 varchar2(100),
+			주소 	   varchar2(100)
+		)
+		
+		--기본키 설정
+		alter table 학생
+		 add constraint pk_학생_학번	primary key(학번)
+		 
+		 insert into 학생 values(1,'일길동','111-1111','일아비','자영업','서울 관악');
+		 insert into 학생 values(2,'이길동','222-2222','이아비','회사원','서울 구로');
+		 
+		 select * from 학생
+		 
+		 	create table 성적
+		 	(
+		 		일련번호 int,
+		 		학번	 int,
+		 		국어	 int,
+		 		영어	 int,
+		 		수학	 int,
+		 		학년	 int,
+		 		학기	 int,
+		 		시험종류 varchar2(100)
+		 	)
+		 	
+		 	--기본키 설정
+		 	alter table 성적
+		 		add constraint pk_성적_일련번호	primary key(일련번호);
+		 		
+		 	--외래키(foreign key) 설정
+		 	alter table 성적
+		 		add constraint fk_성적_학번 foreign key(학번)
+		 									references 학생(학번);	
+				 		
+		insert into 성적 values(1,1,77,88,99,1,1,'중간고사');
+		
+		--학번이 2번인 학생의 성적
+		insert into 성적 values(2,2,97,88,9,1,1,'중간고사');
+		
+		--학번이 3번인 학생의 성적
+		insert into 성적 values(2,3,77,88,99,1,1,'중간고사');
+		
+		select * from 성적
+*/

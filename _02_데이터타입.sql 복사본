@@ -1,0 +1,47 @@
+/*
+오라클자료형
+
+1.문자형 : 최대길이 2000byte
+	고정길이형 : char(크기)
+	가변길이형 : varchar2(크기)
+	cf) 크기단위 byte
+	
+	입력글자가 : '나'
+	memo char(2000) 	<= 2000byte할당하고 3byte에 '나' 기록 (나머지 빈공간도 할당됨)
+	memo varchar2(2000) <= 3byte할당하고 '나' 기록 (값이 들어간 만큼 할당됨)
+	
+	gender varchar2(4) <= '남자' 6byte들어가려고 함(Error) 최대치를 잡으
+	gender varchar2(100)<= 6byte만 할당
+	
+2.숫자형 : 최대자릿수 38자리
+	number(크기)
+	number(p,s) <= p:전체자릿수	s:소숫점이하자릿수
+	int			<= number (38)	동일한 자료형
+	
+	   변수명 자료형
+	ex)	kor number(3)	<= 0~999까지 저장 (3자리라는 뜻) int형 쓰는게 낫다
+	
+3.날짜형
+	date	: 년월일시분초 포함
+	sysdate <= 현재시스템 날짜 구하는 함(상)수
+	
+	select 
+		sysdate,
+		to_char(sysdate, 'HH'),
+		to_char(sysdate, 'MI'),
+		to_char(sysdate, 'SS')
+	  from dual
+	
+		변수(필드)명	자료형
+	ex) birthday		date
+		date <=		'1999-1-1'
+		
+4.대용량 데이터
+ LOB(Large Object)
+ -BLOB(Binaray Large Object)   : 영상파일(동영상) 압축파일
+ -CLOB(Character Large Object) : 문자형태의 대용량				
+
+byte
+
+
+*/

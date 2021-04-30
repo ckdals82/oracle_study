@@ -1,0 +1,81 @@
+/*
+ --성적관리용 테이블
+ 
+ create table test_sung
+ (
+ 	--field명	type(자료형)
+ 	name	   varchar2(100),
+ 	kor			number(3),
+ 	eng			int,
+ 	mat			int
+ )
+--DML: 데이터 조작 언어
+-- : insert uqdate delete
+
+--데이터추가
+--			table명			(값1, 값2 ...)
+insert into test_sung values('일길동' , 90 , 88 , 70);
+insert into test_sung(name,kor,eng,mat)		values( '이길동' , 80, 70, 90);
+insert into test_sung(kor,eng,mat,name) 	values(80 , 70, 90 , '삼길동');
+
+--새미콜론 붙이는 상황 : 한번에  블럭처리해서 실행시키기 위함
+
+--데이터 수정
+update test_sung 
+	set kor = 100, eng = 100, mat = 100
+where name='삼길동' -- 조건절(행선택) where절 없이 작성하면 전 범위 변경됨
+
+--데이터 삭제
+delete from test_sung
+
+
+cf)같냐?
+java	: A==B
+DB		: A=B
+
+
+--데이터 조회
+select * from test_sung
+
+select
+	name,kor,eng,mat,   		-- 기본필드(컬럼) 기존에 있는 필드
+	kor+eng+mat as tot, 		-- 계산필드 tot		<- heading
+	round((kor+eng+mat)/3,1) as mean     -- 계산필드 mean	<- heading
+from test_sung
+
+---########회원관리용 테이블##########
+create table test_member
+(
+	name 	varchar2(100),			--회원이름
+	id	 	varchar2(100),			--아이디
+	pwd	 	varchar2(100),			--비밀번호
+	birth	date,					--생년월일
+	regdate date					--가입일자
+)
+
+--Data 추가
+--			날짜형식입력시 표현 : 'YYYY-MM-DD'
+--			sysdate : 현재시스템날짜 구하기
+insert into test_member values ('일길동','one' ,'1234' ,'1999-12-25' , sysdate)
+insert into test_member(name,id,pwd,regdate) values('이길동', 'two', '1234~',sysdate)
+
+--태어난 년월일 시분초 까지를 기록 : 2000-4-29 10:30:30
+insert into test_member values ('삼길동','three' ,'~1234' ,
+								to_date('2000-04-29 10:30:30' , 'YYYY-MM-DD HH:MI:SS'), 
+								sysdate)
+
+--조회
+select
+	 name,id,pwd,birth,
+	 to_char(birth,'HH') as hour,
+	 to_char(birth,'MM') as minute,
+	 to_char(birth,'SS') as second,
+	 regdate
+	 from test_member
+
+
+
+
+
+
+*/
